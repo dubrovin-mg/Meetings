@@ -12,6 +12,9 @@ x64/
 # Click-Once directory
 publish/
 
+# Visual Studio cache/options directory
+.vs/
+
 # Compiled Object files
 *.slo
 *.lo
