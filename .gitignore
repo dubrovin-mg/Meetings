@@ -1,6 +1,17 @@
 # Prerequisites
 *.d
 
+# Build results
+
+[Dd]ebug/
+[Rr]elease/
+x64/
+[Bb]in/
+[Oo]bj/
+
+# Click-Once directory
+publish/
+
 # Compiled Object files
 *.slo
 *.lo
