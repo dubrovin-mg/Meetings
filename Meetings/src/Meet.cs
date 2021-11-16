@@ -26,11 +26,11 @@ namespace Meetings
         /* Конструктор класса */
         private Meet(string name, DateTime startDate, DateTime endDate, bool needAlarm, TimeSpan alarmTime)
         {
-            this.Name = name;
-            this.StartDate = startDate;
-            this.EndDate = endDate;
-            this.NeedAlarm = needAlarm;
-            this.AlarmTime = alarmTime;
+            Name = name;
+            StartDate = startDate;
+            EndDate = endDate;
+            NeedAlarm = needAlarm;
+            AlarmTime = alarmTime;
         }
 
         /* Создание объекта встречи */
@@ -76,10 +76,11 @@ namespace Meetings
             {
                 Console.WriteLine("За какое время нужно прислать уведомление? Укажите в формате {0}", timeSpanFormat);
                 // Проверить ввод корректного интервала
-                while (!CheckCorrectInterval(Console.ReadLine(), out alarmTime))
+                while (!TimeSpan.TryParseExact(Console.ReadLine(), @"hh\:mm", null, out alarmTime))
                 {
                     Console.WriteLine("Некорректное значение интервала об уведомлении. Попробуйте еще раз");
                 }
+
             }
 
             return new Meet(name, startDate, endDate, needAlarm, alarmTime);
@@ -89,10 +90,7 @@ namespace Meetings
         private static bool CheckMeetName(string inputText, out string name)
         {
             name = inputText;
-            if (String.IsNullOrEmpty(name))
-                return false;
-            else
-                return true;
+            return !String.IsNullOrEmpty(name);
         }
 
         /* Проверка условия ввода корректных даты/времени */
@@ -100,14 +98,9 @@ namespace Meetings
         {
             // Условие корректных даты/времени 
             // Условие планирования встречи только на будущее время 
-            if (!DateTime.TryParseExact(inputText,
-                       dateTimeFormat,
-                       CultureInfo.InvariantCulture,
-                       DateTimeStyles.None,
-                       out resultDate) || resultDate <= DateTime.Now)
-                return false;
-            else
-                return true;
+            return  DateTime.TryParseExact(inputText, dateTimeFormat,
+                    CultureInfo.InvariantCulture, DateTimeStyles.None, out resultDate)
+                    && resultDate > DateTime.Now;
         }
 
         /* Проверка условия отсутствия пересечения дат */
@@ -120,13 +113,10 @@ namespace Meetings
             }
 
             // Проверка условия отсутствия пересечения встреч 
-            var intersectMeets =
-                from item in Scheduler.ReadSchedule
-                where (startDate > item.StartDate
-                       && startDate < item.EndDate)
-                      || (endDate > item.StartDate
-                          && endDate < item.EndDate)
-                select item;
+            var intersectMeets = Scheduler.ReadSchedule
+                .Where(item => (startDate >= item.StartDate && startDate <= item.EndDate)
+                            || (endDate >= item.StartDate && endDate <= item.EndDate));
+
             if (intersectMeets.Count() > 0)
             {
                 throw new Exception("На выбранное время уже существуют записи в расписании");
@@ -138,28 +128,13 @@ namespace Meetings
         {
             int result;
             needAlarm = false;
-            if (!int.TryParse(inputText, out result)
-                || result > 2
-                    || result < 1)
+            if (int.TryParse(inputText, out result)
+                && result > 0 && result < 3)
             {
-                return false;
-            }
-            else
-            {
-                needAlarm = result == 1 ? true : false;
+                needAlarm = result == 1;
                 return true;
             }
-        }
-
-        /* Проверить условие ввода корректного интервала. */
-        private static bool CheckCorrectInterval(string inputText, out TimeSpan alarmTime)
-        {
-            alarmTime = new TimeSpan(0);
-
-            if (!TimeSpan.TryParseExact(inputText, @"hh\:mm", null, out alarmTime))
-                return false;
-            else
-                return true;
+            return false;     
         }
 
         /* Суммарная информация о встрече */
@@ -223,22 +198,19 @@ namespace Meetings
             {
                 Console.WriteLine("За какое время нужно прислать уведомление? Укажите в формате {0}", timeSpanFormat);
                 // Проверить ввод корректного интервала
-                while (!CheckCorrectInterval(Console.ReadLine(), out alarmTime))
+                while (!TimeSpan.TryParseExact(Console.ReadLine(), @"hh\:mm", null, out alarmTime))
                 {
-                    Console.WriteLine("Некорректное значение интервала об уведомлении");
+                    Console.WriteLine("Некорректное значение интервала об уведомлении. Попробуйте еще раз");
                 }
             }
+
             // Изменение объекта
-            if (meet.Name != name)
-                meet.Name = name;
-            if (meet.StartDate != startDate)
-                meet.StartDate = startDate;
-            if (meet.EndDate != endDate)
-                meet.EndDate = endDate;
-            if (meet.NeedAlarm != needAlarm)
-                meet.NeedAlarm = needAlarm;
-            if (meet.AlarmTime != alarmTime)
-                meet.AlarmTime = alarmTime;
+            meet.Name = name;
+            meet.StartDate = startDate;
+            meet.EndDate = endDate;
+            meet.NeedAlarm = needAlarm;
+            meet.AlarmTime = alarmTime;
+
         }
 
     }

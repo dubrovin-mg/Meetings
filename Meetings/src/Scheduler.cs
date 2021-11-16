@@ -45,15 +45,9 @@ namespace Meetings
         }
 
         /* Проверка корректности выбранного номера из расписания */
-        private static int CheckSelectedIndex(string inputText)
+        private static bool CheckSelectedIndex(string inputText, out int index)
         {
-            int index;
-            while (!int.TryParse(inputText, out index) || index <= 0 || index > Schedule.Count)
-            {
-                Console.WriteLine("Встреча с таким номером не найдена. Попробуйте еще раз");
-                inputText = Console.ReadLine();
-            }
-            return index;
+            return int.TryParse(inputText, out index) && index > 0 && index <= Schedule.Count;
         }
 
         /* Изменить объект встречи в расписании */
@@ -64,7 +58,12 @@ namespace Meetings
 
             Console.WriteLine("Введите № встречи из списка для редактирования.");
 
-            int index = CheckSelectedIndex(Console.ReadLine());
+            int index;
+
+                while (!CheckSelectedIndex(Console.ReadLine(), out index))
+            {
+                Console.WriteLine("Встреча с таким номером не найдена. Попробуйте еще раз");
+            }
 
             var meet = Schedule[index - 1];
             Meet.EditData(meet);
@@ -80,7 +79,11 @@ namespace Meetings
             ShowList();
             Console.WriteLine("Введите № встречи из списка для удаления.");
 
-            int index = CheckSelectedIndex(Console.ReadLine());
+            int index;
+            while (!CheckSelectedIndex(Console.ReadLine(), out index))
+            {
+                Console.WriteLine("Встреча с таким номером не найдена. Попробуйте еще раз");
+            }
 
             Schedule.RemoveAt(index - 1);
             Console.WriteLine("Удаление выполнено успешно");
@@ -105,7 +108,7 @@ namespace Meetings
             if (IsEmptyList()) return;
             Console.WriteLine("Введите имя файла для экспорта (без расширения)");
 
-            // Проверка непустого имени
+            // Проверка корректного имени файла
             string name;
             while (!CheckFileName(Console.ReadLine(), out name))
             {
@@ -132,20 +135,16 @@ namespace Meetings
             // Проверка на отсутствие недопустимых символов
             name = inputText;
             Regex badFileChars = new Regex("["+Regex.Escape(new string (Path.GetInvalidFileNameChars() ) )+"]");
-            if ( String.IsNullOrEmpty(name) || 
-                 badFileChars.IsMatch(name)
-               )
-                return false;
-            else
-                return true;
+            return !(String.IsNullOrEmpty(name) || badFileChars.IsMatch(name));
         }
 
         /*Проверка наступления времени уведомления о встрече и вывод информации на консоль */
         public static void CheckAlarmsInList(Object o)
         {
 
-            if (Schedule.Count > 0)
-            {
+            if (Schedule.Count == 0)
+                return;
+
                 foreach (var item in Schedule)
                 {   
                     if (item.NeedAlarm)
@@ -157,9 +156,7 @@ namespace Meetings
                                               $"которая начнётся {item.StartDate:dd.MM.yyyy HH:mm} ");
                     }
 
-                }
-
-            }
+                }    
         }
 
     }

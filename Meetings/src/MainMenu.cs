@@ -95,12 +95,7 @@ namespace Meetings
         /* Проверка на корректность выбранного пункта - число в возможном диапазоне значений */
         internal static bool CheckCorrectMenuItem(string inputText, out int result)
         {
-            if (!int.TryParse(inputText, out result)
-                || result > Menu.Keys.Max()
-                    || result < Menu.Keys.Min())
-                return false;
-            else
-                return true;
+            return int.TryParse(inputText, out result) && result >= Menu.Keys.Min() && result <= Menu.Keys.Max();
         }
 
     }
